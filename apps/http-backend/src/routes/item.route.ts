@@ -1,12 +1,15 @@
 
 import { Router } from "express";
-import { addItem, getItem, getItems } from "../controllers/item.controller";
+import { addItem, getItem, getItems, getUnsoldItem } from "../controllers/item.controller";
+import { middleware } from "../middleware";
 
 const router : Router = Router();
 
-router.post("/" , addItem );
+router.post("/" ,middleware, addItem );
 
 router.get("/" , getItems);
+
+router.get("/available" , getUnsoldItem);
 
 router.get("/:item" , getItem);
 
