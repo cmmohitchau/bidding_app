@@ -7,10 +7,10 @@ const router : Router = Router();
 
 router.post("/" ,middleware, addItem );
 
-router.get("/" , getItems);
+router.get("/items" , getItems);
 
 router.get("/available" , getUnsoldItem);
 
-router.get("/:item" , getItem);
+router.get("/" , getItem);
 
 export default router;
