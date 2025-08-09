@@ -84,8 +84,7 @@ export const signin = ( async (req : Request , res : Response) => {
         })
     }
 
-    const token = jwt.sign({email} as JwtPayload , JWT_SECRET as string);
-    console.log(token);
+    const token = jwt.sign({userId : existingUser.id} as JwtPayload , JWT_SECRET as string);
     
     return res.status(200).json({
         message : "signin successfully",
