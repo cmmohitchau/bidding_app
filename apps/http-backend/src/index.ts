@@ -9,6 +9,7 @@ import bidRoute from "./routes/bid.route";
 
 
 const app = express();
+app.use(express.json());
 
 app.use(cors());
 
