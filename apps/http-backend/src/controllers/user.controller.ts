@@ -30,6 +30,8 @@ export const signup =  async (req : any , res : Response) => {
                 email
             }
         });
+        console.log("existing user: " , existingUser);
+        
         
 
         if(existingUser) {
@@ -47,6 +49,8 @@ export const signup =  async (req : any , res : Response) => {
             }
         })
 
+        console.log("user : " , user);
+        
 
         return res.status(200).json({
             message : "user created successfully"
@@ -83,12 +87,20 @@ export const signin = ( async (req : Request , res : Response) => {
             message : "user does not exist"
         })
     }
+    const matched = await bcrypt.compare(password , existingUser.password);
+    
+    if(!matched) {
+        return res.status(400).json({
+            message : "incorrect password"
+        })
+    }
 
     const token = jwt.sign({userId : existingUser.id} as JwtPayload , JWT_SECRET as string);
     
     return res.status(200).json({
         message : "signin successfully",
-        token
+        token,
+        user : existingUser
     })    
 })
 
