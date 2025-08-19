@@ -4,11 +4,10 @@ import { Request , Response } from "express"
 
 export const addItem = ( async (req : Request , res : Response) => {
     const parsedData = itemSchema.safeParse(req.body);
-    console.log("in addItem route");
     
     if(!parsedData.success) {
         return res.status(401).json({
-            message : "invalid input"
+            message : "Invalid input"
         })
     }
     try {
@@ -27,7 +26,7 @@ export const addItem = ( async (req : Request , res : Response) => {
         })
 
         return res.status(200).json({
-            message : "addItem created successfully",
+            message : "Item added Successfully",
             itemId : item.id
         })  
     } catch(e) {
@@ -39,7 +38,6 @@ export const addItem = ( async (req : Request , res : Response) => {
 })
 
 export const getUnsoldItem = ( async (req : Request , res : Response) => {
-        console.log("in getUnsoldItem route");
 
     const items = await prismaClient.item.findMany({
         where : {
@@ -54,7 +52,6 @@ export const getUnsoldItem = ( async (req : Request , res : Response) => {
 })
 
 export const getItems = async (req : Request , res : Response ) => {
-    console.log("in getItems route");
 
     const items = await prismaClient.item.findMany();
 

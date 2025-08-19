@@ -7,16 +7,11 @@ import { JWT_SECRET } from "@repo/backend-common/index";
 
 export const signup =  async (req : any , res : Response) => {
 
-    const data = req.body;
-    
-    console.log(data);
-    
     const parsedData = signupSchema.safeParse(req.body);
-    console.log(parsedData);
     
     if(!parsedData.success) {
         return res.status(401).json({
-            message : "invalid data"
+            message : "Invalid data"
         })
     }
 
@@ -29,14 +24,12 @@ export const signup =  async (req : any , res : Response) => {
             where : {
                 email
             }
-        });
-        console.log("existing user: " , existingUser);
-        
+        });        
         
 
         if(existingUser) {
             return res.status(401).json({
-                message : "user already exist"
+                message : "User already exist"
             })
         }
 
@@ -45,12 +38,8 @@ export const signup =  async (req : any , res : Response) => {
                 email,
                 name,
                 password : hashedPassword,
-                
             }
-        })
-
-        console.log("user : " , user);
-        
+        })        
 
         return res.status(200).json({
             message : "user created successfully"
@@ -68,7 +57,7 @@ export const signin = ( async (req : Request , res : Response) => {
 
     if(!parsedData.success) {
         return res.status(400).json({
-            message : "invalid data"
+            message : "Invalid data"
         }) 
     }
 
@@ -84,14 +73,14 @@ export const signin = ( async (req : Request , res : Response) => {
 
     if(!existingUser) {
         return res.status(400).json({
-            message : "user does not exist"
+            message : "User does not exist"
         })
     }
     const matched = await bcrypt.compare(password , existingUser.password);
     
     if(!matched) {
         return res.status(400).json({
-            message : "incorrect password"
+            message : "Incorrect Password"
         })
     }
 
@@ -114,7 +103,7 @@ export const users = ( async (req : Request, res : Response) => {
 
 
         return res.status(200).json({
-            message : "users fetched successfully",
+            message : "Users fetched successfully",
             users
         })    
     }   catch (e) {
