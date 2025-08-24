@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
 import { ThemeProvider } from "@/components/ui/theme-provider";
+import { ItemsProvider } from "./context/ItemsContext";
+import { Appbar } from "./components/Appbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,7 +38,10 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Providers>
-            {children}
+            <ItemsProvider>
+              <Appbar />
+              {children}
+            </ItemsProvider>
           </Providers>
         </ThemeProvider>
         
