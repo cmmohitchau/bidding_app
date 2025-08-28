@@ -9,8 +9,8 @@ import { BACKEND_URL } from "@repo/common/urls";
 interface AppUser {
   id: string;
   email: string;
-  name?: string | null;
-  message : string;
+  name? : string;
+  token : string
 }
 
 export const authOptions: NextAuthOptions = {
@@ -29,9 +29,16 @@ export const authOptions: NextAuthOptions = {
             email: credentials?.username,
             password: credentials?.password,
           });
-
-          if (res.status === 200 && res.data.user) {
-            return res.data.user;
+          console.log("res in auth : " , res);
+          
+          const data = res.data;
+          if (res.status === 200 && res.data ) {
+            return {
+              id: data.user.id,
+              email: data.user.email,
+              name: data.user.name,
+              token: data.token
+            };
           }
 
           // force NextAuth to throw backend message
@@ -51,22 +58,37 @@ export const authOptions: NextAuthOptions = {
   ],
   secret: process.env.AUTH_SECRET,
   callbacks: {
-    async jwt({ token, user }) {
-      console.log("user in jwt " , user);
+    async jwt({ token, user , account }) {
       
       if (user) {
+        
         token.uid = (user as any).id;
         token.email = (user as any).email;
+        token.accessToken = (user as any).token;
       }
+
+      if (account?.provider === "github" && user) {
+        
+          const res = await axios.post(`${BACKEND_URL}/auth/github` , {
+            name : user.name,
+            providerId : account.providerAccountId
+          });
+
+          token.accessToken = res.data.token;
+          token.uid = res.data.user.id;
+      }
+      
+      
       return token;
     },
     async session({ session, token }) {
-      if (session.user) {
-        console.log("user in session " , session);
-        
+      if (session.user) {        
         session.user.id = token.uid as string;
         session.user.email = token.email as string;
+        
       }
+      (session as any).accessToken = token.accessToken;
+      
       return session;
     },
   },
