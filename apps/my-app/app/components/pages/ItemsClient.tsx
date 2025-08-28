@@ -2,7 +2,6 @@
 
 import { BuyButton } from "@/app/lib/actions/BuyButton";
 import { useItems } from "@/app/lib/actions/contexts";
-import { itemType } from "@/app/page";
 import sold from "@/public/Sold.png";
 import {
     Card,
@@ -16,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { useEffect } from "react";
 import Image from "next/image";
+import { itemType } from "@/app/items/page";
 
 export const ItemsClient = ({ items } : { items : itemType[] }) => {
     const {setItems} = useItems();
