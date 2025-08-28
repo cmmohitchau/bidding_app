@@ -3,7 +3,9 @@ import { prismaClient } from "@repo/db/client"
 import { Request , Response } from "express"
 
 export const addItem = ( async (req : Request , res : Response) => {
+    
     const parsedData = itemSchema.safeParse(req.body);
+    console.log(parsedData);
     
     if(!parsedData.success) {
         return res.status(401).json({
@@ -12,13 +14,15 @@ export const addItem = ( async (req : Request , res : Response) => {
     }
     try {
         const userId = req.id;
+        console.log(userId);
+        
 
         const {name , initialPrice  , description , photo } = parsedData.data;
 
         const item = await prismaClient.item.create({
             data : {
                 name,
-                price : initialPrice,
+                price : Number(initialPrice),
                 description,
                 SellerId : userId,
                 photo
@@ -86,3 +90,40 @@ export const getItem = ( async (req : Request, res : Response) => {
         item
     })    
 })
+
+export const getItemById = (async (req : Request , res : Response) => {
+    
+    try {
+        const id = Number(req.params.id);
+        console.log(id);
+        
+
+
+        if(isNaN(id)) {
+            return res.status(400).json({
+                error : "Invalid item id"
+            });
+        }
+
+
+        const item = await prismaClient.item.findUnique({
+            where : {
+                id
+            }
+        });
+
+        console.log("item " , item);
+        
+
+        if(item == null) {
+            console.log(" item null");
+            
+            return res.status(404).json({ error : "Item not found"});
+        }
+
+        return res.status(200).json(item); 
+    } catch (err) {
+        return res.status(500).json({ error : "Server error"});
+    }
+
+});
