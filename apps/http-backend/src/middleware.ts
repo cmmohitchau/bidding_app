@@ -12,9 +12,10 @@ declare global {
 export const middleware = async (req : Request , res : Response , next : NextFunction) => {
 
     try {
-      const token = req.headers["authorization"] ?? "";
-
+      const token = req.headers["authorization"] ?? "";      
+      
       if(!token) return;
+      
       const verified = jwt.verify(token as string , JWT_SECRET as string) as {userId : string};
       
       if(verified.userId) {
@@ -22,12 +23,12 @@ export const middleware = async (req : Request , res : Response , next : NextFun
           next();
       } else {
           return res.status(401).json({
-              messagge : "unauthorized token"
+              message : "Unauthorized token"
           })
       }
     } catch(e) {
       return res.status(401).json({
-              messagge : "unauthorized token"
+              message : "Unauthorized token"
       })
     }
 
