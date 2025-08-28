@@ -76,6 +76,8 @@ export const signin = ( async (req : Request , res : Response) => {
             message : "User does not exist"
         })
     }
+
+    if(!existingUser.password) return;
     const matched = await bcrypt.compare(password , existingUser.password);
     
     if(!matched) {
@@ -84,13 +86,16 @@ export const signin = ( async (req : Request , res : Response) => {
         })
     }
 
-    const token = jwt.sign({userId : existingUser.id} as JwtPayload , JWT_SECRET as string);
     
+    const token = jwt.sign({userId : existingUser.id } as JwtPayload , JWT_SECRET as string);
+
     return res.status(200).json({
         message : "signin successfully",
-        token,
-        user : existingUser
-    })    
+        user : existingUser,
+        token
+    })
+
+
 })
 
 export const users = ( async (req : Request, res : Response) => {
