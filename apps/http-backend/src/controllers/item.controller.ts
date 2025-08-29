@@ -97,6 +97,7 @@ export const getItemById = (async (req : Request , res : Response) => {
         const id = Number(req.params.id);
         console.log(id);
         
+        
 
 
         if(isNaN(id)) {

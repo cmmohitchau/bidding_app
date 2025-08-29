@@ -68,7 +68,6 @@ export const signin = ( async (req : Request , res : Response) => {
             email
         }
     })
-    console.log("jwt secret " , JWT_SECRET);
     
 
     if(!existingUser) {
