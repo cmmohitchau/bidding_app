@@ -23,6 +23,7 @@ export const ItemsClient = ({ items } : { items : itemType[] }) => {
     useEffect( () => {
         setItems(items);
     } , [items , setItems]);
+    
     return (
         
       <div className="mx-4 grid md:grid-cols-3 sm:grid-cols-2 gap-6 lg:grid-cols-4">
