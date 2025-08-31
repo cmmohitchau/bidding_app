@@ -29,7 +29,6 @@ export const authOptions: NextAuthOptions = {
             email: credentials?.username,
             password: credentials?.password,
           });
-          console.log("res in auth : " , res);
           
           const data = res.data;
           if (res.status === 200 && res.data ) {
