@@ -13,7 +13,7 @@ export const signinSchema = z.object({
 
 export const itemSchema = z.object({
     name : z.string(),
-    initialPrice : z.number(),
+    initialPrice : z.string(),
     photo : z.string(),
     description : z.string()
 })
