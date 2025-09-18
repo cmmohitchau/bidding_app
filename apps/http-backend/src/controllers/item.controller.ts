@@ -1,11 +1,12 @@
-import { itemSchema } from "@repo/common/types"
-import { prismaClient } from "@repo/db/client"
-import { Request , Response } from "express"
+import { itemSchema } from "@repo/common/types";
+import { prismaClient } from "@repo/db/client";
+import { Request , Response } from "express";
 
 export const addItem = ( async (req : Request , res : Response) => {
     
     const parsedData = itemSchema.safeParse(req.body);
     console.log(parsedData);
+    console.log(typeof parsedData.data?.targetTime);
     
     if(!parsedData.success) {
         return res.status(401).json({
@@ -14,10 +15,11 @@ export const addItem = ( async (req : Request , res : Response) => {
     }
     try {
         const userId = req.id;
-        console.log(userId);
+        console.log("userId " , userId);
         
 
-        const {name , initialPrice  , description , photo } = parsedData.data;
+        const {name , initialPrice  , description , photo , targetTime } = parsedData.data;
+            console.log(typeof new Date(targetTime));
 
         const item = await prismaClient.item.create({
             data : {
@@ -25,7 +27,8 @@ export const addItem = ( async (req : Request , res : Response) => {
                 price : Number(initialPrice),
                 description,
                 SellerId : userId,
-                photo
+                photo,
+                targetTime : new Date(targetTime)
             }
         })
 
@@ -128,3 +131,4 @@ export const getItemById = (async (req : Request , res : Response) => {
     }
 
 });
+
