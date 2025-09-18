@@ -18,6 +18,7 @@ app.use("/item" , itemRoute);
 app.use("/bid" , bidRoute);
 app.use("/auth" , authRoute);
 
+
 app.listen(HTTP_PORT , () => {
     console.log("http backend is running at port " , HTTP_PORT);
     
