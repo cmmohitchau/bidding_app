@@ -17,12 +17,14 @@ import { itemType } from "@/app/items/page";
 import { useSocket } from "@/app/hooks/useSocket";
 import { Input } from "@/components/ui/input";
 import { SkeletonCard } from "@/app/components/ItemSkeleton";
+import { useCountdown } from "@/app/hooks/useCounter";
+import axios from "axios";
+import { BACKEND_URL } from "@repo/common/urls";
 
 
 export function ClientComponent({ item } : {item : itemType | null }) {
     const session = useSession();
-    
-    const [buyer , setBuyer] = useState(false);
+    const [buyerId , setBuyerId ] = useState("");
     const [price , setPrice] = useState("1000");
     const [priceInvalid , setPriceInvalid ] = useState(false);
     const [error , setError ] = useState<null | string>(null);
@@ -30,10 +32,23 @@ export function ClientComponent({ item } : {item : itemType | null }) {
 
     if(!item) return;
     const {loading , socket} = useSocket(item.id);
+    const { days, hours, minutes, seconds, expired } = useCountdown(item.targetTime);
     const roomId = item.id;
+    const id = session.data?.user.id;
+
+    async function updateDB() {
+        
+        const result = await axios.put(`${BACKEND_URL}/bid` , {itemId : item!.id});
+        const buyerId = result.data.item.buyerId;
+        setBuyerId(buyerId);
+    }
+
+    if(!item.soldOut && expired) {
+        updateDB();
+        
+    }
 
     useEffect( () => {        
-        if(item?.BuyerId) setBuyer(true);
         
     } , [item]);
 
@@ -49,10 +64,11 @@ export function ClientComponent({ item } : {item : itemType | null }) {
                     setError(parsedData.error);
                     break;
                 case "UPDATE_PRICE" :
-                    const { roomId , price } = parsedData;
+                    const { roomId , price , buyerId  } = parsedData;
                     console.log("parsedData from ws in client : " , parsedData);
                     
                     setCurrPrice(price);
+                    
                     break;
                 default :
                     setError("Websocket unable to connect");
@@ -70,7 +86,7 @@ export function ClientComponent({ item } : {item : itemType | null }) {
             
         }
     } , [socket])
-
+    
     function bid() {
         if(Number(price) < 1000) {
             setPriceInvalid(true);
@@ -82,14 +98,10 @@ export function ClientComponent({ item } : {item : itemType | null }) {
             JSON.stringify({
                 type : "BID",
                 price : Number(price),
-                roomId
+                roomId,
+                userId : id
             })
         );
-        console.log("sent data : " ,JSON.stringify({
-                type : "BID",
-                price,
-                roomId
-            }));
         
     }
 
@@ -135,7 +147,8 @@ export function ClientComponent({ item } : {item : itemType | null }) {
             <CardFooter className="flex flex-col">
                 <div className="flex justify-between w-full mb-4">
                     <p className="text-2xl font-bold mt-6">Rs. {currPrice}</p>
-                    {buyer && <Image src={sold} alt="Sold out" width={100} height={100} /> }
+                    {!expired && <p className="text-xl font-semibold text-green-600 mt-6">Time Left: {days}d {hours}h {minutes}m {seconds}s</p>}
+                    {item.soldOut && <Image src={sold} alt="Sold out" width={100} height={100} /> }
                 </div>
                 
                 <Input 
@@ -152,7 +165,7 @@ export function ClientComponent({ item } : {item : itemType | null }) {
                 <Button
                 onClick={bid}
                 className="bg-green-500 mt-2 w-full"
-                disabled={!session.data || buyer} // disables if buyerId is present
+                disabled={!session.data || expired}
                 >
                 Bid
                 </Button>

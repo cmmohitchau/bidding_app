@@ -19,7 +19,8 @@ export default async function BidPage({ params } : BidPageProps) {
         if(res.status == 200) {
             
             const item = res.data;
-            
+            console.log("item in client " , item);
+            console.log("type of date " , typeof item.targetTime);
             
             return <ClientComponent item={item} />
         } else {
