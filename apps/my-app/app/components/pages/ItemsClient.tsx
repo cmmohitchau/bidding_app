@@ -1,7 +1,6 @@
 "use client";
 
 import { BuyButton } from "@/app/lib/actions/BuyButton";
-import { useItems } from "@/app/lib/actions/contexts";
 import sold from "@/public/Sold.png";
 import {
     Card,
@@ -13,16 +12,21 @@ import {
     CardFooter
 
 } from "@/components/ui/card";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { itemType } from "@/app/items/page";
+import axios from "axios";
+import { BACKEND_URL } from "@repo/common/urls";
 
-export const ItemsClient = ({ items } : { items : itemType[] }) => {
-    const {setItems} = useItems();
-
+export const ItemsClient = () => {
+  const [items , setItems] = useState<itemType[]> ([]);
     useEffect( () => {
-        setItems(items);
-    } , [items , setItems]);
+        async function getItems() {
+          const res = await axios.get(`${BACKEND_URL}/item/items`);
+          setItems(res.data.items);
+        }
+        getItems();
+    } , [items]);
     
     return (
         
@@ -41,9 +45,10 @@ export const ItemsClient = ({ items } : { items : itemType[] }) => {
                 <CardContent>
                   <p>{item.photo}</p>
                 </CardContent>
-                <CardFooter className="flex justify-between">
+                <CardFooter className="flex justify-between mt-4">
                   <p className="font-bold text-2xl">Rs. {item.price}</p>
-                  {item.BuyerId && <Image src={sold} alt="Sold Icon" width={100} height={100} />
+                  {!item.soldOut && <p className="font-bold text-2xl text-green-600">Available</p>}
+                  {item.soldOut && <Image src={sold} alt="Sold Icon" width={100} height={100} />
 }
                 </CardFooter>
               </Card>
