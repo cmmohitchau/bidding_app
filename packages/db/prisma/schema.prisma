@@ -35,6 +35,8 @@ model Item {
   SellerId String
   BuyerId String?
   photo String
+  soldOut Boolean @default(false)
+  targetTime DateTime
   seller User @relation("ItemSold" , fields: [SellerId] , references: [id])
   buyer User? @relation("ItemBought" ,fields: [BuyerId] , references: [id])
 }
