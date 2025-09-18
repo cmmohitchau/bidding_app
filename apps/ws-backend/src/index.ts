@@ -116,7 +116,9 @@ wss.on("connection" , (socket , request) => {
                     data : {
                         price : {
                             increment : Number(parsedData.price)
-                        }
+                        },
+                        BuyerId : parsedData.userId
+                        
                     }
                 })
 
