@@ -11,7 +11,9 @@ export interface itemType {
   description : string
   SellerId : string
   BuyerId? : string | null
-  photo : string
+  photo : string,
+  targetTime : Date | string
+  soldOut : boolean
 }
 export default async function Items () {
     const session = await getServerSession(authOptions);
@@ -28,10 +30,10 @@ export default async function Items () {
             </span>
             </div>
             ) : (
-            <p>Please log in</p>
+            <p className="text-6xl font-bold text-red-600">Please log in</p>
             )}
         </div>
-            <ItemsClient items={items} />
+            <ItemsClient />
         </div>
     )
 }
