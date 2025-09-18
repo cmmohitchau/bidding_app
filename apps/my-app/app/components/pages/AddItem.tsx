@@ -20,6 +20,7 @@ export function SellItemForm() {
     initialPrice: "",
     description: "",
     photo: "",
+    targetTime : ""
   });
 
   const router = useRouter();
@@ -102,14 +103,27 @@ export function SellItemForm() {
             />
           </div>
 
-          {/* Photo */}
           <div>
-            <Label htmlFor="photo">Photo URL</Label>
+            <Label htmlFor="targetTime">TargetTime</Label>
+            <input
+              type="datetime-local"
+              className="mt-2"
+              id="targetTime"
+              name="targetTime"
+              placeholder="targetTime"
+              value={formData.targetTime}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="photo">Photo</Label>
             <Input
               className="mt-2"
               id="photo"
               name="photo"
-              type="url"
+              type="text"
               placeholder="https://example.com/item.jpg"
               value={formData.photo}
               onChange={handleChange}
@@ -117,7 +131,6 @@ export function SellItemForm() {
             />
           </div>
 
-          {/* Submit */}
           <Button
             type="submit"
             className="w-full bg-gradient-to-r from-green-400 to-green-600 text-white font-semibold rounded-2xl hover:scale-105 hover:shadow-lg transition-all duration-300"
