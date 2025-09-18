@@ -4,7 +4,7 @@ import { bid } from "../controllers/bid.controller";
 
 const router : Router = Router();
 
-router.post("/" , bid );
+router.put("/" , bid );
 
 
 
