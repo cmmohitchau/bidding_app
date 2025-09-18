@@ -15,5 +15,6 @@ export const itemSchema = z.object({
     name : z.string(),
     initialPrice : z.string(),
     photo : z.string(),
-    description : z.string()
+    description : z.string(),
+    targetTime : z.string()
 })
