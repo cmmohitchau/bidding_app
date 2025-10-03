@@ -6,6 +6,7 @@ import userRoute from "./routes/user.route";
 import itemRoute from "./routes/item.route";
 import bidRoute from "./routes/bid.route";
 import authRoute from "./routes/auth.route";
+import s3Route from "./routes/s3.route";
 
 
 const app = express();
@@ -17,7 +18,7 @@ app.use("/" , userRoute);
 app.use("/item" , itemRoute);
 app.use("/bid" , bidRoute);
 app.use("/auth" , authRoute);
-
+app.use("/s3" , s3Route);
 
 app.listen(HTTP_PORT , () => {
     console.log("http backend is running at port " , HTTP_PORT);
