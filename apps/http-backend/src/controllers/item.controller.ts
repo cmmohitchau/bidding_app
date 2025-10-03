@@ -6,7 +6,6 @@ export const addItem = ( async (req : Request , res : Response) => {
     
     const parsedData = itemSchema.safeParse(req.body);
     console.log(parsedData);
-    console.log(typeof parsedData.data?.targetTime);
     
     if(!parsedData.success) {
         return res.status(401).json({
@@ -15,11 +14,9 @@ export const addItem = ( async (req : Request , res : Response) => {
     }
     try {
         const userId = req.id;
-        console.log("userId " , userId);
         
 
         const {name , initialPrice  , description , photo , targetTime } = parsedData.data;
-            console.log(typeof new Date(targetTime));
 
         const item = await prismaClient.item.create({
             data : {
@@ -97,6 +94,8 @@ export const getItem = ( async (req : Request, res : Response) => {
 export const getItemById = (async (req : Request , res : Response) => {
     
     try {
+        console.log("in get items by id");
+        
         const id = Number(req.params.id);
         console.log(id);
         
@@ -132,3 +131,52 @@ export const getItemById = (async (req : Request , res : Response) => {
 
 });
 
+export const searchItem = ( async (req : Request , res : Response) => {
+    
+    const keyword = req.query.keyword;
+    let price = req.query.price ? Number(req.query.price) : undefined;
+    
+    if(!keyword || typeof keyword !== 'string') {
+        return res.status(400).json({
+            message : "Invalid search"
+        })
+    }
+
+    const items = await prismaClient.item.findMany({
+        where : {
+            AND : [
+                {
+                    OR : [
+                        {
+                            name : {
+                                contains : keyword,
+                                mode : "insensitive"
+                            },
+                            
+                            description : {
+                                contains : keyword,
+                                mode : "insensitive"
+                            },
+                            price : {
+                                lt : price,
+
+                            }
+                        }
+                    ]
+                },
+                price !== undefined
+                ? {
+                    price : {
+                        lte : price,
+                    },
+
+                } : {}
+            ]
+        }
+    })
+
+    return res.status(200).json({
+        message : "Items fetched successfully",
+        items
+    })
+});
