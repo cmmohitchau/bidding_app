@@ -1,6 +1,6 @@
 
 import { Router } from "express";
-import { addItem, getItem, getItemById, getItems, getUnsoldItem } from "../controllers/item.controller";
+import { addItem, getItem, getItemById, getItems, getUnsoldItem, searchItem } from "../controllers/item.controller";
 import { middleware } from "../middleware";
 
 const router : Router = Router();
@@ -13,6 +13,9 @@ router.get("/available" , getUnsoldItem);
 
 router.get("/" , getItem);
 
+router.get("/search" , searchItem);
+
 router.get("/:id" , getItemById);
+
 
 export default router;
