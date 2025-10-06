@@ -1,6 +1,7 @@
 import { itemSchema } from "@repo/common/types";
 import { prismaClient } from "@repo/db/client";
 import { Request , Response } from "express";
+import { generatePresignedUrl } from "./s3.controller";
 
 export const addItem = ( async (req : Request , res : Response) => {
     
@@ -57,12 +58,25 @@ export const getUnsoldItem = ( async (req : Request , res : Response) => {
 
 export const getItems = async (req : Request , res : Response ) => {
 
-    const items = await prismaClient.item.findMany();
+  try {
+    const items = await prismaClient.item.findMany();    
 
-    return res.status(200).json({
-        message : "all items",
-        items
-    })
+    const itemsWithUrls = await Promise.all(
+      items.map(async (item) => {
+        const url = await generatePresignedUrl(item.photo);
+        return {
+          ...item,
+          photo: url,
+        };
+      })
+    );
+    
+
+    return res.json({ items: itemsWithUrls });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Failed to fetch items" });
+  }
 }
 
 export const getItem = ( async (req : Request, res : Response) => {
@@ -93,14 +107,8 @@ export const getItem = ( async (req : Request, res : Response) => {
 
 export const getItemById = (async (req : Request , res : Response) => {
     
-    try {
-        console.log("in get items by id");
-        
-        const id = Number(req.params.id);
-        console.log(id);
-        
-        
-
+    try {        
+        const id = Number(req.params.id);        
 
         if(isNaN(id)) {
             return res.status(400).json({
@@ -114,69 +122,79 @@ export const getItemById = (async (req : Request , res : Response) => {
                 id
             }
         });
-
-        console.log("item " , item);
         
-
-        if(item == null) {
-            console.log(" item null");
-            
+        if(!item) {            
             return res.status(404).json({ error : "Item not found"});
         }
+        console.log("item in api : " , item);
+        
+        const url = await generatePresignedUrl(item.photo);
+        console.log("url in api : " , url);
+        
+        const itemWithUrl = {
+            ...item,
+            photo : url
+        }
 
-        return res.status(200).json(item); 
+        return res.status(200).json({
+            message : "Item fetched successfully",
+            item : itemWithUrl
+        }); 
     } catch (err) {
         return res.status(500).json({ error : "Server error"});
     }
 
 });
 
-export const searchItem = ( async (req : Request , res : Response) => {
-    
-    const keyword = req.query.keyword;
-    let price = req.query.price ? Number(req.query.price) : undefined;
-    
-    if(!keyword || typeof keyword !== 'string') {
-        return res.status(400).json({
-            message : "Invalid search"
-        })
+export const searchItem = async (req: Request, res: Response) => {
+  try {
+    const keyword = req.query.keyword as string;
+
+    if (!keyword || typeof keyword !== "string" || keyword.trim() === "") {
+      return res.status(400).json({
+        message: "Invalid or missing search keyword",
+      });
     }
 
     const items = await prismaClient.item.findMany({
-        where : {
-            AND : [
-                {
-                    OR : [
-                        {
-                            name : {
-                                contains : keyword,
-                                mode : "insensitive"
-                            },
-                            
-                            description : {
-                                contains : keyword,
-                                mode : "insensitive"
-                            },
-                            price : {
-                                lt : price,
+      where: {
+        OR: [
+          {
+            name: {
+              contains: keyword,
+              mode: "insensitive",
+            },
+          },
+          {
+            description: {
+              contains: keyword,
+              mode: "insensitive",
+            },
+          },
+        ],
+      },
+      take: 16,
+    });
 
-                            }
-                        }
-                    ]
-                },
-                price !== undefined
-                ? {
-                    price : {
-                        lte : price,
-                    },
-
-                } : {}
-            ]
-        }
-    })
-
+    const itemsWithUrls = await Promise.all(
+        items.map( async (item) => {
+            const url = await generatePresignedUrl(item.photo);
+            return {
+                ...item,
+                photo : url
+            }
+        })
+    )
     return res.status(200).json({
-        message : "Items fetched successfully",
-        items
-    })
-});
+      message: "Items fetched successfully",
+      items : itemsWithUrls,
+    });
+  } catch (error) {
+    console.error("Error while searching items:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
