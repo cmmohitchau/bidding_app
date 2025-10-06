@@ -13,16 +13,19 @@ const s3Client = new S3Client({
     }
 });
 
+export async function generatePresignedUrl(key: string) {
+  const command = new GetObjectCommand({
+    Bucket: process.env.BUCKET,
+    Key: key,
+  });
+  return await getSignedUrl(s3Client, command, { expiresIn: 3600 }); // 1 hour validity
+}
+
 export const getPresignedUrl = async (req : Request , res : Response) => {
     try {
         const key = req.query.key as string;
          
-        const command = new GetObjectCommand({
-            Key : key,
-            Bucket : process.env.BUCKET
-        })
-
-        const url = await getSignedUrl(s3Client , command);
+        const url = generatePresignedUrl(key);
 
         res.status(200).json({
             message : "get presigned url fetched successfully",
@@ -38,15 +41,22 @@ export const getPresignedUrl = async (req : Request , res : Response) => {
 
 export const postPresignedUrl = async (req : Request , res : Response) => {
    try {
-     const key = req.query.key as string;
+     const { fileName , fileType } = req.query;
+     console.log(req.query);
+     
+     if(!fileName || !fileType) {
+        return res.status(400).json({
+            error : "fileNae and fileType are required"
+        });
+     }
 
      const command = new PutObjectCommand({
-        Key : key,
-        Bucket : process.env.BUCKET
-    });
+        Key : `uploads/${fileName}`,
+        Bucket : process.env.BUCKET,
+        ContentType : fileType as string
+    });    
 
-    const url = await getSignedUrl(s3Client , command);
-
+    const url = await getSignedUrl(s3Client , command , { expiresIn : 60});    
     res.status(200).json({
         message : "put object url fetched successfuly",
         url
