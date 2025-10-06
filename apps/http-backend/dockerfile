@@ -1,0 +1,11 @@
+FROM node:24.0.0-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install --only=productio
+
+COPY . .
+
+CMD ["node" , "./dist/index.js"]
