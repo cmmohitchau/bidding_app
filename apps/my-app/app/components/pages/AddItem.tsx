@@ -15,13 +15,14 @@ import { useSession } from "next-auth/react";
 export function SellItemForm() {
   const {data : session} = useSession();
 
-  const [formData, setFormData] = useState({
-    name: "",
-    initialPrice: "",
-    description: "",
-    photo: "",
-    targetTime : ""
-  });
+const [formData, setFormData] = useState({
+  name: "",
+  initialPrice: "",
+  description: "",
+  photo: null as File | null,
+  targetTime: ""
+});
+
 
   const router = useRouter();
 
@@ -36,20 +37,62 @@ export function SellItemForm() {
 
     const token = session.accessToken;
     console.log("token in sell " , token);
+
+    
     
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await axios.post(
-      `${BACKEND_URL}/item`,
-      formData,{
-        headers : {
-          authorization : token
-        }
-      }
-    );
-    router.push("/items");
-  };
+const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+
+  if (!formData.photo) {
+    alert("Please upload a valid image");
+    return;
+  }
+
+  const file = formData.photo;
+  const fileName = `${Date.now()}-${file.name}`;
+  const fileType = file.type;
+
+  // 1. Get presigned URL
+  const { data: presigned } = await axios.get(`${BACKEND_URL}/put-presigned-url`, {
+    params: { fileName, fileType },
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const uploadUrl = presigned.url;
+
+  // 2. Upload file directly to S3
+  await axios.put(uploadUrl, file, {
+    headers: {
+      "Content-Type": fileType,
+    },
+  });
+
+  // 3. Extract the clean S3 URL (without query params)
+  const imageUrl = uploadUrl.split("?")[0];
+
+  // 4. Save item in DB
+  await axios.post(
+    `${BACKEND_URL}/item`,
+    {
+      name: formData.name,
+      initialPrice: Number(formData.initialPrice),
+      description: formData.description,
+      photo: imageUrl,
+      targetTime: formData.targetTime,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  router.push("/items");
+};
+
 
   return (
     <Card className="max-w-lg mx-auto mt-8 shadow-lg rounded-2xl">
@@ -123,12 +166,16 @@ export function SellItemForm() {
               className="mt-2"
               id="photo"
               name="photo"
-              type="text"
-              placeholder="https://example.com/item.jpg"
-              value={formData.photo}
-              onChange={handleChange}
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0] || null;
+                setFormData(prev => ({ ...prev, photo: file }));
+              }}
               required
             />
+
+
           </div>
 
           <Button
