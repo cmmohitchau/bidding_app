@@ -36,8 +36,6 @@ const [formData, setFormData] = useState({
     }
 
     const token = session.accessToken;
-    console.log("token in sell " , token);
-
     
     
 
@@ -53,42 +51,41 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   const fileName = `${Date.now()}-${file.name}`;
   const fileType = file.type;
 
-  // 1. Get presigned URL
-  const { data: presigned } = await axios.get(`${BACKEND_URL}/put-presigned-url`, {
+  const { data: presigned } = await axios.get(`${BACKEND_URL}/s3/put-presigned-url`, {
     params: { fileName, fileType },
     headers: {
-      Authorization: `Bearer ${token}`,
+      authorization: `${token}`,
     },
   });
 
   const uploadUrl = presigned.url;
 
-  // 2. Upload file directly to S3
   await axios.put(uploadUrl, file, {
     headers: {
       "Content-Type": fileType,
     },
   });
 
-  // 3. Extract the clean S3 URL (without query params)
   const imageUrl = uploadUrl.split("?")[0];
+  const key = imageUrl.split(".amazonaws.com/")[1];
 
-  // 4. Save item in DB
   await axios.post(
     `${BACKEND_URL}/item`,
     {
       name: formData.name,
-      initialPrice: Number(formData.initialPrice),
+      initialPrice: formData.initialPrice,
       description: formData.description,
-      photo: imageUrl,
+      photo: key,
       targetTime: formData.targetTime,
     },
     {
       headers: {
-        Authorization: `Bearer ${token}`,
+        authorization: `${token}`,
       },
     }
   );
+
+  console.log("Item listed successfully");
 
   router.push("/items");
 };

@@ -15,6 +15,8 @@ export const middleware = async (req : Request , res : Response , next : NextFun
       const token = req.headers["authorization"] ?? "";      
       
       if(!token) return;
+      console.log(" token in middleware " , token);
+      
       
       const verified = jwt.verify(token as string , JWT_SECRET as string) as {userId : string};
       

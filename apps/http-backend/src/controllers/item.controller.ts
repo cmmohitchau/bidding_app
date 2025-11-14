@@ -16,7 +16,8 @@ export const addItem = ( async (req : Request , res : Response) => {
     try {
         const userId = req.id;
         
-
+        console.log("userId : " , userId);
+        
         const {name , initialPrice  , description , photo , targetTime } = parsedData.data;
 
         const item = await prismaClient.item.create({
@@ -30,12 +31,17 @@ export const addItem = ( async (req : Request , res : Response) => {
             }
         })
 
+
+
         return res.status(200).json({
+
             message : "Item added Successfully",
             itemId : item.id
         })  
     } catch(e) {
+      console.error("Error adding item:", e);
         return res.status(501).json({
+
             message : "server error unable to add item"
         })
         
