@@ -12,84 +12,75 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
 
-export function SellItemForm() {
+export function SellItemForm(){
   const {data : session} = useSession();
+  
+  if (!session) {
+    console.error("No session found");
+    return;
+  }
 
-const [formData, setFormData] = useState({
-  name: "",
-  initialPrice: "",
-  description: "",
-  photo: null as File | null,
-  targetTime: ""
-});
-
-
+  const token = session.accessToken;
   const router = useRouter();
+
+  const [file , SetFile] = useState<File | null>(null);
+
+  const [formData, setFormData] = useState({
+    name: "",
+    initialPrice: "",
+    description: "",
+    photo: "",
+    targetTime : ""
+  });
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-  if (!session) {
-      console.error("No session found");
-      return;
-    }
-
-    const token = session.accessToken;
+  
+  const fileHandler = (e : React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if(selectedFile) SetFile(selectedFile);
     
-    
+  }   
 
-const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    try {
+      e.preventDefault();
+      if(!file) {
+        alert("please select a file first");
+        return;
+      }
 
-  if (!formData.photo) {
-    alert("Please upload a valid image");
-    return;
-  }
+      const fileName = file.name;
+      const fileType = file.type;
+      
 
-  const file = formData.photo;
-  const fileName = `${Date.now()}-${file.name}`;
-  const fileType = file.type;
+      const response = await axios.get(`${BACKEND_URL}/s3/put-presigned-url?fileName=${encodeURIComponent(fileName)}&fileType=${encodeURIComponent(fileType)}`);
 
-  const { data: presigned } = await axios.get(`${BACKEND_URL}/s3/put-presigned-url`, {
-    params: { fileName, fileType },
-    headers: {
-      authorization: `${token}`,
-    },
-  });
+      const put_url = response.data.url;      
 
-  const uploadUrl = presigned.url;
+      await axios.put(put_url , file , {
+        headers : {"Content-Type" : fileType}
+      });
 
-  await axios.put(uploadUrl, file, {
-    headers: {
-      "Content-Type": fileType,
-    },
-  });
-
-  const imageUrl = uploadUrl.split("?")[0];
-  const key = imageUrl.split(".amazonaws.com/")[1];
-
-  await axios.post(
-    `${BACKEND_URL}/item`,
-    {
-      name: formData.name,
-      initialPrice: formData.initialPrice,
-      description: formData.description,
-      photo: key,
-      targetTime: formData.targetTime,
-    },
-    {
-      headers: {
-        authorization: `${token}`,
-      },
+      const key = `uploads/${fileName}`;
+      
+      formData.photo = key;
+      
+      await axios.post(`${BACKEND_URL}/item` , formData , {
+        headers : {authorization : token}
+      });
+      alert("product added successfully")
+      router.push("/items");
+      
+    } catch(e) {
+      console.log("error while uploading");
+      console.log(e)
+      
     }
-  );
-
-  console.log("Item listed successfully");
-
-  router.push("/items");
-};
-
+  };
 
   return (
     <Card className="max-w-lg mx-auto mt-8 shadow-lg rounded-2xl">
@@ -164,15 +155,10 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
               id="photo"
               name="photo"
               type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0] || null;
-                setFormData(prev => ({ ...prev, photo: file }));
-              }}
+              placeholder="Upload image"
+              onChange={fileHandler}
               required
             />
-
-
           </div>
 
           <Button

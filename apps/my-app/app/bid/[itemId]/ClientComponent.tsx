@@ -2,14 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import sold from "@/public/Sold.png";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
@@ -29,12 +21,15 @@ export function ClientComponent({ item } : {item : itemType | null }) {
     const [priceInvalid , setPriceInvalid ] = useState(false);
     const [error , setError ] = useState<null | string>(null);
     const [ currPrice , setCurrPrice ] = useState(item?.price);
+    console.log("item in client component : " , item);
+
 
     if(!item) return;
     const {loading , socket} = useSocket(item.id);
     const { days, hours, minutes, seconds, expired } = useCountdown(item.targetTime);
     const roomId = item.id;
     const id = session.data?.user.id;
+    
 
     async function updateDB() {
         
@@ -123,55 +118,82 @@ export function ClientComponent({ item } : {item : itemType | null }) {
     }
 
     return (
-    <div className="p-8 mt-8 flex justify-center">
-        <Card className="max-w-lg w-full">
-            <CardHeader>
-            <CardTitle>{item.name}</CardTitle>
-            <CardDescription>{item.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-            <img
-                src={item.photo}
-                alt={item.name}
-                className="w-full h-64 object-cover rounded-lg mb-4"
-            />
-            <p>
-                <span className="font-bold">Seller ID:</span> {item.SellerId}
-            </p>
-            {item.BuyerId && (
-                <p>
-                <span className="font-bold">Buyer ID:</span> {item.BuyerId}
-                </p>
-            )}
-            </CardContent>
-            <CardFooter className="flex flex-col">
-                <div className="flex justify-between w-full mb-4">
-                    <p className="text-2xl font-bold mt-6">Rs. {currPrice}</p>
-                    {!expired && <p className="text-xl font-semibold text-green-600 mt-6">Time Left: {days}d {hours}h {minutes}m {seconds}s</p>}
-                    {item.soldOut && <Image src={sold} alt="Sold out" width={100} height={100} /> }
-                </div>
-                
-                <Input 
-                placeholder="1000" 
-                onChange={(e) => setPrice(e.target.value)} 
-                />
-
-                {priceInvalid && (
-                    <p className="text-red-500 text-sm mt-1">
-                        Minimum bid must be 1000
-                    </p>
-                )}
-
-                <Button
-                onClick={bid}
-                className="bg-green-500 mt-2 w-full"
-                disabled={!session.data || expired}
-                >
-                Bid
-                </Button>
-
-            </CardFooter>
-        </Card>
+<div className="max-w-6xl mx-auto mt-8 p-6 grid grid-cols-1 md:grid-cols-2 gap-10">
+  <div className="flex flex-col items-center">
+    <div className="w-full max-w-md overflow-hidden mt-4">
+      <img
+        src={item.photo}
+        alt={item.name}
+        className="w-full h-auto p-4 transition-transform duration-300 hover:scale-105  hover:z-2"
+      />
     </div>
+
+    {/* Sold Out or Time Left */}
+    <div className="mt-4 flex items-center justify-center">
+      {item.soldOut ? (
+        <Image src={sold} alt="Sold out" className="w-32" />
+      ) : !expired ? (
+        <p className="text-green-600 font-semibold text-lg">
+          ⏳ Time Left: {days}d {hours}h {minutes}m {seconds}s
+        </p>
+      ) : (
+        <p className="text-red-500 font-semibold text-lg">Auction Ended</p>
+      )}
+    </div>
+  </div>
+
+  {/* RIGHT: Product Details */}
+  <div className="w-full max-w-xl mx-auto">
+    <div className="border-b pb-4">
+      <p className="text-2xl font-semibold">{item.name}</p>
+      <div className="text-gray-600 mt-1">
+        {item.description}
+      </div>
+    </div>
+
+    <div className="mt-4 space-y-3">
+      <p>
+        <span className="font-bold text-gray-800">Seller ID:</span>{" "}
+        <span className="text-gray-700">{item.SellerId}</span>
+      </p>
+      {item.BuyerId && (
+        <p>
+          <span className="font-bold text-gray-800">Buyer ID:</span>{" "}
+          <span className="text-gray-700">{item.BuyerId}</span>
+        </p>
+      )}
+    </div>
+
+    <div className="flex flex-col gap-4 border-t pt-4">
+      <div className="flex justify-between items-center">
+        <p className="text-3xl font-bold text-gray-900">₹ {currPrice}</p>
+      </div>
+
+      {/* Bid Input */}
+      <div className="w-full">
+        <Input
+          placeholder="Enter your bid amount"
+          onChange={(e) => setPrice(e.target.value)}
+          className="w-full"
+        />
+        {priceInvalid && (
+          <p className="text-red-500 text-sm mt-1">
+            Minimum bid must be 1000
+          </p>
+        )}
+      </div>
+
+      {/* Bid Button */}
+      <Button
+        onClick={bid}
+        className="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 text-lg"
+        disabled={!session.data || expired || item.soldOut}
+      >
+        {item.soldOut ? "Sold Out" : expired ? "Auction Ended" : "Place Bid"}
+      </Button>
+    </div>
+  </div>
+</div>
+
     )
 }

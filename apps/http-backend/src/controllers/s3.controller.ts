@@ -25,8 +25,9 @@ export const getPresignedUrl = async (req : Request , res : Response) => {
     try {
         const key = req.query.key as string;
          
-        const url = generatePresignedUrl(key);
-
+        const url = await generatePresignedUrl(key);
+        console.log("url in backend : " , url);
+        
         res.status(200).json({
             message : "get presigned url fetched successfully",
             url

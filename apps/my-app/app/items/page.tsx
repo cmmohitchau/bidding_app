@@ -17,23 +17,22 @@ export interface itemType {
 }
 export default async function Items () {
     const session = await getServerSession(authOptions);
-      const items = await getItems();
-
+    
     return(
         <div>
             <div className="m-4">
-            {session ? (
-            <div className="text-6xl font-bold flex"><span className="hidden lg:block">Welcome Back ,</span>
-            
-            <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent animate-pulse">
-            {session.user?.name}
-            </span>
+              {session ? (
+              <div className="text-6xl font-bold flex"><span className="hidden lg:block">Welcome Back ,</span>
+              
+              <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent animate-pulse">
+              {session.user?.name}
+              </span>
+              </div>
+              ) : null
+              }
             </div>
-            ) : (
-            <p className="text-6xl font-bold text-red-600">Please log in</p>
-            )}
-        </div>
-            <ItemsClient />
+            
+          <ItemsClient />
         </div>
     )
 }

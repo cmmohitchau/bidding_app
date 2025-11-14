@@ -1,93 +1,68 @@
 "use client";
 
-import { BuyButton } from "@/app/lib/actions/BuyButton";
 import sold from "@/public/Sold.png";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardAction,
-  CardDescription,
-  CardContent,
-  CardFooter
-} from "@/components/ui/card";
-import Image from "next/image";
-import axios from "axios";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BACKEND_URL } from "@repo/common/urls";
+import Image from "next/image";
 import { itemType } from "@/app/items/page";
+import axios from "axios";
+import { BACKEND_URL } from "@repo/common/urls";
+import { Products } from "../Products";
+import { Search } from "lucide-react";
+import { log } from "console";
 
 export const ItemsClient = () => {
   const [items, setItems] = useState<itemType[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [query , setQuery] = useState("");
+
+  const router = useRouter();
+  const [isSticky, setIsSticky] = useState(false);
 
   useEffect(() => {
-    async function fetchItems() {
-      try {
-        const res = await axios.get(`${BACKEND_URL}/item/items`);
-        setItems(res.data.items || []);
-      } catch (err) {
-        console.error("Failed to fetch items:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchItems();
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      setIsSticky(scrollY > 205);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  if (loading) {
-    return (
-      <div className="text-center text-xl py-10">
-        Loading items…
-      </div>
-    );
-  }
-
-  if (items.length === 0) {
-    return (
-      <div className="text-center text-xl py-10">
-        No items available
-      </div>
-    );
-  }
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (query.trim()) {
+      router.push(`/search?query=${encodeURIComponent(query)}`);
+    }
+  };
+  useEffect(() => {
+    async function getItems() {
+      const res = await axios.get(`${BACKEND_URL}/item/items`);
+      setItems(res.data.items);
+      console.log("response in frontend : " , res.data.items);
+    }
+    getItems();
+  }, []);
 
   return (
-    <div className="mx-4 grid md:grid-cols-3 sm:grid-cols-2 gap-6 lg:grid-cols-4">
-      {items.map((item) => (
-        <Card
-          key={item.id}
-          className="transition ease-in-out hover:-translate-y-1 hover:scale-105 duration-300"
-        >
-          <CardHeader>
-            <CardTitle>{item.name}</CardTitle>
-            <CardDescription>{item.description}</CardDescription>
-            <CardAction>
-              <BuyButton itemId={item.id} />
-            </CardAction>
-          </CardHeader>
+    <>
+          <form
+          onSubmit={handleSearch}
+          className={`flex sm:hidden items-center ${
+        isSticky
+          ? "fixed top-0 left-0 right-0 z-50 rounded-none shadow-md transition-all duration-300"
+          : "sticky top-0 mx-4 mt-2 rounded-full"
+      } bg-gray-100 dark:bg-gray-800 px-3 py-2`}          >
+          <Search className="w-5 h-5 text-gray-500 mr-2" />
+          <input
+            type="text"
+            placeholder="Search items..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="bg-transparent w-full focus:outline-none text-gray-700 dark:text-gray-200 placeholder-gray-400"
+          />
+        </form>
+        <Products items={items} />
+    </>
+  )
 
-          <CardContent>
-            <img
-              src={item.photo}
-              alt={item.name}
-              width={300}
-              height={200}
-              className="rounded-md w-full h-48 object-cover"
-            />
-          </CardContent>
-
-          <CardFooter className="flex justify-between mt-4">
-            <p className="font-bold text-2xl">Rs. {item.price}</p>
-
-            {item.soldOut ? (
-              <Image src={sold} alt="Sold" width={70} height={70} />
-            ) : (
-              <p className="font-bold text-2xl text-green-600">Available</p>
-            )}
-          </CardFooter>
-        </Card>
-      ))}
-    </div>
-  );
+  
 };
