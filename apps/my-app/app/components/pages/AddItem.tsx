@@ -54,20 +54,32 @@ export function SellItemForm(){
       }
 
       const fileName = file.name;
-      const fileType = file.type;
-      
+      const fileType = (file.type).split("/")[1];
+      console.log("fileType : " , fileType)
 
-      const response = await axios.get(`${BACKEND_URL}/s3/put-presigned-url?fileName=${encodeURIComponent(fileName)}&fileType=${encodeURIComponent(fileType)}`);
-
-      const put_url = response.data.url;      
-
-      await axios.put(put_url , file , {
-        headers : {"Content-Type" : fileType}
+      const response = await axios.post(`${BACKEND_URL}/s3/get-presigned-url` , {
+        fileName,
+        fileType
       });
 
-      const key = `uploads/${fileName}`;
+      console.log("after response in fe");
+      const put_url = response.data.url; 
+      const finalName = response.data.finalName;  
+
+      console.log("put url : " , put_url);
+      console.log("key : " , finalName);
       
-      formData.photo = key;
+      const result = await axios.put(put_url , file ,{
+        headers : {
+          "Content-Type" : file.type || "application/octet-stream"
+        }
+      });
+
+      console.log("result : " , result);
+
+
+      
+      formData.photo = finalName;
       
       await axios.post(`${BACKEND_URL}/item` , formData , {
         headers : {authorization : token}
