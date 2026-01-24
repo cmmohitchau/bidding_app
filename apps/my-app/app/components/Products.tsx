@@ -26,7 +26,7 @@ export const Products = ({ items } : ProductProps) => {
               
               <div className="relative">
                 <Image
-                src={item.photo}
+                src={`https://d29c44rupn7bmn.cloudfront.net/${item.photo}`}
                 alt={item.name}
                 width={300}
                 height={300}
