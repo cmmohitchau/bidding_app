@@ -121,9 +121,11 @@ export function ClientComponent({ item } : {item : itemType | null }) {
 <div className="max-w-6xl mx-auto mt-8 p-6 grid grid-cols-1 md:grid-cols-2 gap-10">
   <div className="flex flex-col items-center">
     <div className="w-full max-w-md overflow-hidden mt-4">
-      <img
-        src={item.photo}
+      <Image
+        src={`https://d29c44rupn7bmn.cloudfront.net/${item.photo}` }
         alt={item.name}
+        width={100}
+        height={100}
         className="w-full h-auto p-4 transition-transform duration-300 hover:scale-105  hover:z-2"
       />
     </div>
