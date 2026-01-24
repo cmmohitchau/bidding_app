@@ -1,7 +1,6 @@
 import { itemSchema } from "@repo/common/types";
 import { prismaClient } from "@repo/db/client";
 import { Request , Response } from "express";
-import { generatePresignedUrl } from "./s3.controller";
 
 export const addItem = ( async (req : Request , res : Response) => {
     
@@ -60,19 +59,9 @@ export const getItems = async (req : Request , res : Response ) => {
 
   try {
     const items = await prismaClient.item.findMany();    
-
-    const itemsWithUrls = await Promise.all(
-      items.map(async (item) => {
-        const url = await generatePresignedUrl(item.photo);
-        return {
-          ...item,
-          photo: url,
-        };
-      })
-    );
     
 
-    return res.json({ items: itemsWithUrls });
+    return res.json({ items });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Failed to fetch items" });
@@ -128,7 +117,7 @@ export const getItemById = (async (req : Request , res : Response) => {
         }
         console.log("item in api : " , item);
         
-        const url = await generatePresignedUrl(item.photo);
+        const url =  item.photo;
         console.log("url in api : " , url);
         
         const itemWithUrl = {
@@ -178,7 +167,7 @@ export const searchItem = async (req: Request, res: Response) => {
 
     const itemsWithUrls = await Promise.all(
         items.map( async (item) => {
-            const url = await generatePresignedUrl(item.photo);
+            const url = (item.photo);
             return {
                 ...item,
                 photo : url
