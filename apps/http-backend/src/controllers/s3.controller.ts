@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { S3Client , GetObjectCommand , PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import dotenv from "dotenv";
+import * as dotenv from "dotenv";
 import { v4 as uuidv4 } from 'uuid';
 
 dotenv.config();

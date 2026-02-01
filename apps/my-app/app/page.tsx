@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Shield, Zap, Users, TrendingUp, Star, Clock, DollarSign } from "lucide-react"
 import { useRouter } from "next/navigation"
-import Image from "next/image"
 
 export default function LandingPage() {
   const [currentBid, setCurrentBid] = useState(1250)

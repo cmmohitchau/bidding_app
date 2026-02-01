@@ -1,0 +1,35 @@
+
+name: backend
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      "apps/http-backend/**"
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@vq3nKOg
+      
+      # Step 2: Login to the dockerhub
+      - name: login to dockerhub
+        uses: docker/login-action@vq3nKOg
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      
+      # Step 3: Build and push to the dockerhub
+      - name: Build and Push Docker backend image
+        uses: docker/build-push-action@v6
+        with:
+          context:  .
+          file: ./Docker/backend.dockerfile
+          push: true
+          tags: mohitprasad004/bidding-backend:${{  github.sha  }}
+      
+

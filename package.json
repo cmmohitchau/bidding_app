@@ -2,7 +2,10 @@
   "name": "bidding_app",
   "private": true,
   "scripts": {
+    "generate:db" : "cd packages/db && pnpm prisma generate && cd ../.. ",
+    "migrate:db" : "cd packages/db && pnpm prisma migrate dev --name init && cd ../.. ",
     "build": "turbo run build",
+    "start" : "turbo run start",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
